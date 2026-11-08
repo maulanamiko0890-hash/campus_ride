@@ -1,0 +1,36 @@
+
+name: Build APK Campus Ride
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Mengambil kode proyek
+        uses: actions/checkout@v4
+
+      - name: Memasang Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Memasang Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Memasang dependensi
+        run: flutter pub get
+
+      - name: Membangun APK
+        run: flutter build apk --release
+
+      - name: Menyimpan APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Campus-Ride-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
