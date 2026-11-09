@@ -13,32 +13,56 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      # 1. Mengambil source code dari repository
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # 2. Menginstal Java
       - name: Install Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
+      # 3. Menginstal Flutter
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
+      # 4. Memeriksa instalasi Flutter
       - name: Check Flutter
         run: flutter doctor -v
 
+      # 5. Menginstal dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release -v
+      # 6. Memeriksa konfigurasi project
+      - name: Check project
+        run: flutter analyze
+        continue-on-error: true
 
+      # 7. Build APK sekaligus menyimpan log
+      - name: Build APK
+        run: |
+          set -o pipefail
+          flutter build apk --release -v 2>&1 | tee build-log.txt
+
+      # 8. Upload APK
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: campus-ride-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      # 9. Upload log jika build gagal
+      - name: Upload Error Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-build-log
+          path: build-log.txt
+          if-no-files-found: ignore
