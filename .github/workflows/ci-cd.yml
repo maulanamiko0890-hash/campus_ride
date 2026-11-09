@@ -1,53 +1,38 @@
-name: CI/CD Pipeline
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [main, develop]
+  - name: Setup Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+      cache: gradle
 
-permissions:
-  contents: read
+  - name: Setup Flutter
+    uses: subosito/flutter-action@v2
+    with:
+      channel: stable
+      flutter-version: '3.27.4'
+      cache: true
 
-jobs:
-  build-android:
-   runs-on: ubuntu-latest
+  - name: Check Flutter
+    run: flutter doctor -v
 
-  steps:
-   - name: Checkout project
-     uses: actions/checkout@v4
+  - name: Install Dependencies
+    run: flutter pub get
 
-   - name: Setup Java
-     uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+  - name: Analyze Flutter Project
+    run: flutter analyze
+    continue-on-error: true
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.5'
-          channel: stable
+  - name: Build Release APK
+    run: flutter build apk --release
 
-     - name: Setup environment
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: |
-    test -n "$SUPABASE_URL"
-    test -n "$SUPABASE_ANON_KEY"
-    printf 'SUPABASE_URL=%s\n' "$SUPABASE_URL" > .env
-    printf 'SUPABASE_ANON_KEY=%s\n' "$SUPABASE_ANON_KEY" >> .env
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk --release
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: campus-ride-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: error
-          retention-days: 14
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: Campus-Ride-APK
+      path: build/app/outputs/flutter-apk/app-release.apk
+      if-no-files-found: error
+      retention-days: 14
