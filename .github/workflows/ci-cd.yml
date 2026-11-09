@@ -28,11 +28,11 @@ jobs:
           flutter-version: '3.24.5'
           channel: stable
 
-      - name: Setup environment
-  env:
-    SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-    SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-  run: |
+     - name: Setup environment
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
     test -n "$SUPABASE_URL"
     test -n "$SUPABASE_ANON_KEY"
     printf 'SUPABASE_URL=%s\n' "$SUPABASE_URL" > .env
