@@ -1,4 +1,3 @@
-
 name: CI/CD Pipeline
 
 on:
@@ -35,8 +34,8 @@ jobs:
 
       - name: Setup Supabase Environment
         env:
-          SUPABASE_URL: ${{ https://fdhyjerswemvzwgthlsx.supabase.co }}
-          SUPABASE_ANON_KEY: ${{ sb_publishable_6AU7yEA2thiXaDCNGi1fpA_JMUR2P2E }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           test -n "$SUPABASE_URL"
           test -n "$SUPABASE_ANON_KEY"
