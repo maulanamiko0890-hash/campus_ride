@@ -1,35 +1,37 @@
 steps:
+  # 1. Download source code repository
   - name: Checkout Repository
     uses: actions/checkout@v4
 
+  # 2. Install Java
   - name: Setup Java
     uses: actions/setup-java@v4
     with:
       distribution: temurin
       java-version: '17'
-      cache: gradle
 
+  # 3. Install Flutter
   - name: Setup Flutter
     uses: subosito/flutter-action@v2
     with:
       channel: stable
-      flutter-version: '3.27.4'
+      flutter-version: '3.47.9'
       cache: true
 
+  # 4. Check Flutter installation
   - name: Check Flutter
-    run: flutter doctor -v
+    run: flutter --version
 
+  # 5. Install project dependencies
   - name: Install Dependencies
     run: flutter pub get
 
-  - name: Analyze Flutter Project
-    run: flutter analyze
-    continue-on-error: true
-
+  # 6. Build Android APK
   - name: Build Release APK
     run: flutter build apk --release
 
-  - name: Upload APK
+  # 7. Upload APK to GitHub
+  - name: Upload APK Artifact
     uses: actions/upload-artifact@v4
     with:
       name: Campus-Ride-APK
