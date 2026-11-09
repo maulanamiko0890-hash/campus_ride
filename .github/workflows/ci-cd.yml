@@ -12,7 +12,7 @@ jobs:
   build-android:
    runs-on: ubuntu-latest
 
-   steps:
+  steps:
     - name: Checkout project
       uses: actions/checkout@v4
 
