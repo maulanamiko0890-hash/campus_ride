@@ -1,40 +1,40 @@
-steps:
-  # 1. Download source code repository
-  - name: Checkout Repository
-    uses: actions/checkout@v4
 
-  # 2. Install Java
-  - name: Setup Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
+name: Build Android APK
 
-  # 3. Install Flutter
-  - name: Setup Flutter
-    uses: subosito/flutter-action@v2
-    with:
-      channel: stable
-      flutter-version: '3.47.9'
-      cache: true
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
-  # 4. Check Flutter installation
-  - name: Check Flutter
-    run: flutter --version
+jobs:
+  build-android:
+    name: Build Flutter APK
+    runs-on: ubuntu-latest
 
-  # 5. Install project dependencies
-  - name: Install Dependencies
-    run: flutter pub get
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  # 6. Build Android APK
-  - name: Build Release APK
-    run: flutter build apk --release
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  # 7. Upload APK to GitHub
-  - name: Upload APK Artifact
-    uses: actions/upload-artifact@v4
-    with:
-      name: Campus-Ride-APK
-      path: build/app/outputs/flutter-apk/app-release.apk
-      if-no-files-found: error
-      retention-days: 14
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: campus-ride-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
