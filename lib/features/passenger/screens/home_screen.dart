@@ -1,213 +1,271 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../core/services/bus_service.dart';
-import '../../../core/services/favorites_service.dart';
-import '../../../core/models/bus_status.dart';
-import '../../user/screens/enhanced_live_bus_tracking_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  final BusService _busService = BusService.instance;
-  List<BusStatus> _buses = [];
-  bool _isLoading = true;
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _loadBuses();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    _slideController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadBuses() async {
-    setState(() => _isLoading = true);
-    
-    try {
-      await _busService.initialize();
-      
-      final authService = context.read<AuthService>();
-      final collegeId = authService.userProfile?.collegeId;
-      
-      if (collegeId != null) {
-        final buses = await _busService.fetchAllBuses(collegeId: collegeId);
-        if (mounted) {
-          setState(() {
-            _buses = buses;
-            _isLoading = false;
-          });
-          _fadeController.forward();
-          _slideController.forward();
-        }
-      } else {
-        setState(() => _isLoading = false);
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final authService = context.watch<AuthService>();
-    final userName = authService.userProfile?.displayName ?? 'Student';
-    // Note: We'll need to add college name lookup later
-    final collegeName = 'Campus';
+    final userName =
+        authService.userProfile?.displayName ?? 'Pengguna';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: _isLoading
-            ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      color: Color(0xFF3B82F6),
-                      strokeWidth: 3,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Loading buses...',
-                      style: TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: _loadBuses,
-                color: const Color(0xFF3B82F6),
-                child: CustomScrollView(
-                  slivers: [
-                    _buildHeader(userName, collegeName),
-                    _buildQuickStats(),
-                    _buildSectionTitle('Available Buses'),
-                    _buildBusList(),
-                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                  ],
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(String userName, String collegeName) {
-    return SliverToBoxAdapter(
-      child: FadeTransition(
-        opacity: _fadeController,
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF3B82F6).withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 12),
+
+              // HEADER
               Row(
                 children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.waving_hand,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Hello, $userName!',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
+                        const Text(
+                          'CampusRide',
+                          style: TextStyle(
+                            fontSize: 26,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF1D4ED8),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
-                          collegeName,
+                          'Halo, $userName!',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const Text(
+                          'Mau pergi atau titip sesuatu hari ini?',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 16,
+                            color: Color(0xFF64748B),
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const CircleAvatar(
+                    radius: 27,
+                    backgroundColor: Color(0xFFDBEAFE),
+                    child: Icon(
+                      Icons.person,
+                      color: Color(0xFF2563EB),
+                      size: 30,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 28),
+
+              // BANNER
               Container(
-                padding: const EdgeInsets.all(16),
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF2563EB),
+                      Color(0xFF1D4ED8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.white,
-                      size: 20,
+                    Text(
+                      'Perjalanan jadi lebih mudah!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Track your campus buses in real-time',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Gunakan layanan antar jemput dan '
+                      'jasa titip bersama pengguna CampusRide.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Icon(
+                      Icons.directions_car,
+                      color: Colors.white,
+                      size: 35,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              const Text(
+                'Pilih Layanan',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // ANTAR JEMPUT
+              _serviceCard(
+                context: context,
+                title: 'Antar Jemput',
+                description:
+                    'Cari tumpangan atau tawarkan perjalanan '
+                    'kepada mahasiswa lain.',
+                icon: Icons.directions_car,
+                color: const Color(0xFF2563EB),
+                background: const Color(0xFFEFF6FF),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ServiceOrderScreen(
+                        serviceType: 'Antar Jemput',
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              // JASTIP
+              _serviceCard(
+                context: context,
+                title: 'Jastip',
+                description:
+                    'Titip pembelian makanan, barang, '
+                    'atau kebutuhan lainnya.',
+                icon: Icons.shopping_bag,
+                color: const Color(0xFF059669),
+                background: const Color(0xFFECFDF5),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ServiceOrderScreen(
+                        serviceType: 'Jastip',
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 25),
+
+              const Text(
+                'Cara Menggunakan CampusRide',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              _stepItem(
+                Icons.touch_app,
+                'Pilih layanan',
+                'Pilih Antar Jemput atau Jastip.',
+              ),
+              _stepItem(
+                Icons.edit_note,
+                'Isi detail pesanan',
+                'Masukkan informasi kebutuhanmu.',
+              ),
+              _stepItem(
+                Icons.handshake,
+                'Hubungi penyedia layanan',
+                'Lanjutkan transaksi dengan pengguna lain.',
+              ),
+
+              const SizedBox(height: 30),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _serviceCard({
+    required BuildContext context,
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required Color background,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: color, size: 30),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
                       ),
                     ),
                   ],
                 ),
               ),
+              Icon(Icons.arrow_forward_ios, color: color, size: 18),
             ],
           ),
         ),
@@ -215,371 +273,254 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildQuickStats() {
-    final onlineBuses = _buses.where((bus) => bus.isOnline).length;
-    final totalBuses = _buses.length;
-
-    return SliverToBoxAdapter(
-      child: FadeTransition(
-        opacity: _fadeController,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.directions_bus,
-                  title: 'Total Buses',
-                  value: totalBuses.toString(),
-                  color: const Color(0xFF10B981),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.wifi,
-                  title: 'Online',
-                  value: onlineBuses.toString(),
-                  color: const Color(0xFF3B82F6),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatCard(
-                  icon: Icons.wifi_off,
-                  title: 'Offline',
-                  value: (totalBuses - onlineBuses).toString(),
-                  color: const Color(0xFFEF4444),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
+  Widget _stepItem(IconData icon, String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
+          CircleAvatar(
+            backgroundColor: const Color(0xFFDBEAFE),
+            child: Icon(icon, color: const Color(0xFF2563EB)),
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF64748B),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return SliverToBoxAdapter(
-      child: FadeTransition(
-        opacity: _fadeController,
-        child: Container(
-          margin: const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 12),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBusList() {
-    if (_buses.isEmpty) {
-      return const SliverToBoxAdapter(
-        child: Center(
-          child: Column(
-            children: [
-              SizedBox(height: 40),
-              Icon(
-                Icons.directions_bus_outlined,
-                size: 64,
-                color: Color(0xFFCBD5E1),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'No buses available',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final bus = _buses[index];
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: _slideController,
-              curve: Interval(
-                index * 0.1,
-                (index * 0.1) + 0.6,
-                curve: Curves.easeOutQuart,
-              ),
-            )),
-            child: FadeTransition(
-              opacity: _fadeController,
-              child: _buildModernBusCard(bus),
-            ),
-          );
-        },
-        childCount: _buses.length,
-      ),
-    );
-  }
-
-  Widget _buildModernBusCard(BusStatus bus) {
-    final favoritesService = context.watch<FavoritesService>();
-    final isFavorite = favoritesService.isFavorite(bus.route.id);
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: Material(
-        elevation: 0,
-        color: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: InkWell(
-            onTap: () => _handleBusTap(bus),
-            borderRadius: BorderRadius.circular(16),
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: bus.isOnline
-                            ? const Color(0xFF10B981).withOpacity(0.1)
-                            : const Color(0xFFEF4444).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.directions_bus,
-                        color: bus.isOnline
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFEF4444),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            bus.route.routeName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${bus.route.startName} → ${bus.route.endName}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => _toggleFavorite(bus.route.id),
-                          icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_outline,
-                            color: isFavorite
-                                ? const Color(0xFFEC4899)
-                                : const Color(0xFF94A3B8),
-                            size: 20,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: bus.isOnline
-                                ? const Color(0xFF10B981).withOpacity(0.1)
-                                : const Color(0xFFEF4444).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            bus.isOnline ? 'Online' : 'Offline',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: bus.isOnline
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFEF4444),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                if (!bus.isOnline && bus.driverName != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: Color(0xFF64748B),
-                              size: 16,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Bus is currently offline',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Driver: ${bus.driverName}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF475569),
-                          ),
-                        ),
-                        if (bus.driverPhone != null)
-                          Text(
-                            'Phone: ${bus.driverPhone}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                ],
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ========================================
+// HALAMAN FORM PEMESANAN
+// ========================================
+
+class ServiceOrderScreen extends StatefulWidget {
+  final String serviceType;
+
+  const ServiceOrderScreen({
+    super.key,
+    required this.serviceType,
+  });
+
+  @override
+  State<ServiceOrderScreen> createState() =>
+      _ServiceOrderScreenState();
+}
+
+class _ServiceOrderScreenState extends State<ServiceOrderScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _pickupController = TextEditingController();
+  final _destinationController = TextEditingController();
+  final _detailController = TextEditingController();
+  final _contactController = TextEditingController();
+
+  @override
+  void dispose() {
+    _pickupController.dispose();
+    _destinationController.dispose();
+    _detailController.dispose();
+    _contactController.dispose();
+    super.dispose();
+  }
+
+  bool get isRide => widget.serviceType == 'Antar Jemput';
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = isRide
+        ? const Color(0xFF2563EB)
+        : const Color(0xFF059669);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: Text(widget.serviceType),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isRide
+                    ? 'Form Permintaan Antar Jemput'
+                    : 'Form Permintaan Jastip',
+                style: const TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isRide
+                    ? 'Masukkan lokasi penjemputan dan tujuanmu.'
+                    : 'Masukkan barang yang ingin kamu titip beli.',
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 25),
+
+              if (isRide) ...[
+                _buildField(
+                  'Lokasi penjemputan',
+                  _pickupController,
+                  Icons.location_on,
+                ),
+                _buildField(
+                  'Lokasi tujuan',
+                  _destinationController,
+                  Icons.flag,
+                ),
+              ] else ...[
+                _buildField(
+                  'Lokasi toko pembelian',
+                  _pickupController,
+                  Icons.store,
+                ),
+                _buildField(
+                  'Alamat pengantaran',
+                  _destinationController,
+                  Icons.location_on,
+                ),
+              ],
+
+              _buildField(
+                isRide ? 'Waktu perjalanan' : 'Nama barang / pesanan',
+                _detailController,
+                isRide ? Icons.access_time : Icons.shopping_bag,
+              ),
+
+              _buildField(
+                'Nomor WhatsApp',
+                _contactController,
+                Icons.phone,
+                isPhone: true,
+              ),
+
+              const SizedBox(height: 15),
+
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'Kirim Permintaan',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              const Text(
+                'Catatan: Ini masih prototipe. Data formulir '
+                'belum disimpan ke database.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  void _handleBusTap(BusStatus bus) {
-    if (bus.isOnline) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EnhancedLiveBusTrackingScreen(bus: bus),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Bus is currently offline'),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+  Widget _buildField(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    bool isPhone = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 17),
+      child: TextFormField(
+        controller: controller,
+        keyboardType:
+            isPhone ? TextInputType.phone : TextInputType.text,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return '$label wajib diisi';
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
         ),
-      );
-    }
+      ),
+    );
   }
 
-  void _toggleFavorite(String routeId) {
-    final favoritesService = context.read<FavoritesService>();
-    favoritesService.toggleFavorite(routeId);
+  void _submitForm() {
+    if (!_formKey.currentState!.validate()) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Prototipe berhasil'),
+        content: const Text(
+          'Formulir berhasil divalidasi. '
+          'Penyimpanan dan pengiriman pesanan ke database '
+          'akan ditambahkan pada tahap berikutnya.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.pop(context);
+            },
+            child: const Text('Selesai'),
+          ),
+        ],
+      ),
+    );
   }
 }
